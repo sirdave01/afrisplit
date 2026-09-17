@@ -1,3 +1,4 @@
+// Renders the default Next.js landing page at the application root.
 import Image from "next/image";
 
 export default function Home() {

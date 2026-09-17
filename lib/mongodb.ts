@@ -1,3 +1,4 @@
+// Provides a cached Mongoose connection for server-side database operations.
 import mongoose from "mongoose";
 
 interface MongooseCache {

@@ -1,3 +1,4 @@
+// Defines the shared document shell, metadata, fonts, and Pollar context for every route.
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -29,6 +30,14 @@ export default function RootLayout({
         <PollarProvider
           client={{
             apiKey: process.env.NEXT_PUBLIC_POLLAR_PUBLISHABLE_KEY!,
+          }}
+          appConfig={{
+            application: {
+              name: "AfriSplit",
+              network: "testnet",
+              chains: [],
+            },
+            styles: {},
           }}
         >
           {children}
