@@ -68,7 +68,14 @@ export default function GroupDetailPage() {
   }, [loadGroup]);
 
   const total = expenses.reduce((sum, expense) => sum + (Number(expense.amount) || 0), 0);
-  const currency = (group?.currency || "NGN").toUpperCase();
+  const currency = ((group?.currency || "NGN") as string).toUpperCase();
+
+  const safeCurrency =
+    currency === "NGN" || currency === "KES" || currency === "GHS" || currency === "ZAR" || currency === "XAF" ||
+    currency === "XOF" || currency === "TZS" || currency === "UGX" || currency === "RWF" || currency === "MAD" ||
+    currency === "EGP" || currency === "CDF" || currency === "BWP"
+      ? currency
+      : "NGN";
 
   // A current user's share is computed from the saved expense shares, so we can show
   // the exact unsettled balance for the wallet currently connected to Pollar.
@@ -188,7 +195,7 @@ export default function GroupDetailPage() {
                       </p>
                     </div>
                     <strong className="font-display text-xl text-ink">
-                      {formatCurrency(expense.amount, currency as any)}
+                      {formatCurrency(expense.amount, safeCurrency)}
                     </strong>
                   </article>
                 ))}
@@ -200,7 +207,7 @@ export default function GroupDetailPage() {
         <aside className="space-y-4">
           <div className="rounded-2xl bg-ink p-6 text-paper">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-mint">Group total</p>
-            <p className="mt-3 font-display text-4xl font-bold">{formatCurrency(total, currency as any)}</p>
+            <p className="mt-3 font-display text-4xl font-bold">{formatCurrency(total, safeCurrency)}</p>
             <p className="mt-2 text-sm text-paper/65">
               Across {members.length} {members.length === 1 ? "member" : "members"}
             </p>
@@ -257,9 +264,9 @@ export default function GroupDetailPage() {
             <div className="rounded-2xl border border-coral/20 bg-[#fff1eb] p-5">
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-coral-dark">Your balance</p>
               <p className="mt-2 font-display text-3xl font-bold text-ink">
-                {formatCurrency(currentShare, currency as any)}
+                {formatCurrency(currentShare, safeCurrency)}
               </p>
-              <PayShareButton amount={currentShare} currency={currency} />
+              <PayShareButton amount={currentShare} currency={safeCurrency} />
             </div>
           )}
         </aside>
