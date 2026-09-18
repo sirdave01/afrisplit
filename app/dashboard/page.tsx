@@ -11,40 +11,65 @@ import GroupCard from "@/components/GroupCard";
 type Group = { _id: string; name: string; description?: string };
 
 export default function DashboardPage() {
-  const { isAuthenticated, wallet, login } = usePollar();
+  const { isAuthenticated, wallet, login, getClient } = usePollar();
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (isAuthenticated && wallet?.address) {
-      // Save/update user
-      fetch("/api/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          pollarId: wallet.address,
-          email: "",
-          name: "",
-        }),
-      });
+    if (!isAuthenticated || !wallet?.address) return;
 
-      queueMicrotask(() => {
-        setLoading(true);
-        setError("");
-      });
-      fetch(`/api/groups?pollarId=${wallet.address}`)
-        .then(async (res) => {
-          if (!res.ok) throw new Error("Could not load your groups.");
-          return res.json();
-        })
-        .then((data: Group[]) => {
-          setGroups(data);
-        })
-        .catch(() => setError("Could not load your groups right now."))
-        .finally(() => setLoading(false));
-    }
-  }, [isAuthenticated, wallet]);
+    let cancelled = false;
+
+    const loadDashboard = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const profile = getClient().getUserProfile();
+        const email = profile?.mail?.trim() || "";
+        const profileName = [profile?.first_name, profile?.last_name]
+          .filter(Boolean)
+          .join(" ")
+          .trim();
+        const displayName = profileName || email.split("@")[0] || `User ${wallet.address.slice(0, 6)}`;
+
+        try {
+          const userResponse = await fetch("/api/users", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              pollarId: wallet.address,
+              email,
+              name: displayName,
+            }),
+          });
+
+          if (!userResponse.ok) {
+            console.error("Could not register the authenticated user.");
+          }
+        } catch (registrationError) {
+          console.error("Could not register the authenticated user.", registrationError);
+        }
+
+        const groupsResponse = await fetch(`/api/groups?pollarId=${encodeURIComponent(wallet.address)}`);
+        if (!groupsResponse.ok) throw new Error("Could not load your groups.");
+
+        const data: Group[] = await groupsResponse.json();
+        if (!cancelled) setGroups(data);
+      } catch {
+        if (!cancelled) setError("Could not load your groups right now.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    void loadDashboard();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [getClient, isAuthenticated, wallet]);
 
   if (!isAuthenticated) {
     return (

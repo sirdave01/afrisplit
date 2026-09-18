@@ -18,6 +18,10 @@ export type AfricanCurrency = (typeof AFRICAN_CURRENCIES)[number];
 
 export const DEFAULT_AFRICAN_CURRENCY: AfricanCurrency = "NGN";
 
+export function isAfricanCurrency(value: string): value is AfricanCurrency {
+  return AFRICAN_CURRENCIES.includes(value as AfricanCurrency);
+}
+
 export function formatCurrency(amount: number, currency: AfricanCurrency = DEFAULT_AFRICAN_CURRENCY) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
