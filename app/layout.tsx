@@ -2,7 +2,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { PollarProvider } from "@pollar/react";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import PollarShell from "@/components/PollarShell";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,21 +29,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        <PollarProvider
-          client={{
-            apiKey: process.env.NEXT_PUBLIC_POLLAR_PUBLISHABLE_KEY!,
-          }}
-          appConfig={{
-            application: {
-              name: "AfriSplit",
-              network: "testnet",
-              chains: [],
-            },
-            styles: {},
-          }}
-        >
-          {children}
-        </PollarProvider>
+        <PollarShell>
+          <div className="flex min-h-screen flex-col">
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
+        </PollarShell>
       </body>
     </html>
   );

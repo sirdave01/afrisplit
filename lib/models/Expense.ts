@@ -31,6 +31,10 @@ const ExpenseSchema = new Schema(
             type: String,
             required: true,
         },
+        amount: {
+            type: Number,
+            required: true,
+        },
         paidBy: {
             type: Schema.Types.ObjectId,
             ref: "User",
