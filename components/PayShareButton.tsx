@@ -1,19 +1,22 @@
 "use client";
 
+import { formatCurrency } from "@/lib/currency";
+
 type PayShareButtonProps = {
 	amount: number;
+	currency?: string;
 	disabled?: boolean;
 };
 
-export default function PayShareButton({ amount, disabled = false }: PayShareButtonProps) {
+export default function PayShareButton({ amount, currency = "NGN", disabled = false }: PayShareButtonProps) {
 	return (
 		<button
 			type="button"
 			disabled={disabled}
-			onClick={() => window.alert(`Payment flow for $${amount.toFixed(2)} will open here.`)}
+			onClick={() => window.alert(`Payment flow for ${formatCurrency(amount, currency as any)} will open here.`)}
 			className="rounded-full bg-coral px-4 py-2 text-sm font-bold text-white transition hover:bg-coral-dark disabled:cursor-not-allowed disabled:opacity-50"
 		>
-			Pay my ${amount.toFixed(2)}
+			Pay my {formatCurrency(amount, currency as any)}
 		</button>
 	);
 }

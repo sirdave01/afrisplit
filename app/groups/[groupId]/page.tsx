@@ -6,6 +6,7 @@ import { usePollar } from "@pollar/react";
 import { useEffect, useState, useCallback } from "react";
 import ExpenseForm from "@/components/ExpenseForm";
 import PayShareButton from "@/components/PayShareButton";
+import { formatCurrency } from "@/lib/currency";
 
 type User = { _id: string; name?: string; email?: string; pollarId?: string };
 type Member = { _id: string; userId: User };
@@ -16,7 +17,7 @@ type Expense = {
   paidBy: User;
   shares: { userId: string; amount: number; paid: boolean }[];
 };
-type Group = { _id: string; name: string; description?: string };
+type Group = { _id: string; name: string; description?: string; currency?: string };
 
 export default function GroupDetailPage() {
   const { groupId } = useParams<{ groupId: string }>();
@@ -57,6 +58,7 @@ export default function GroupDetailPage() {
   }, [loadGroup]);
 
   const total = expenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
+  const currency = (group?.currency || "NGN").toUpperCase();
 
   const currentUser = members.find(
     (member) => member.userId?.pollarId === wallet?.address
@@ -110,6 +112,7 @@ export default function GroupDetailPage() {
             groupId={groupId}
             pollarId={wallet?.address || ""}
             members={expenseMembers}
+            currency={currency}
             onCreated={loadGroup}
           />
 
@@ -139,7 +142,7 @@ export default function GroupDetailPage() {
                       </p>
                     </div>
                     <strong className="font-display text-xl text-ink">
-                      ${expense.amount.toFixed(2)}
+                      {formatCurrency(expense.amount, currency as any)}
                     </strong>
                   </article>
                 ))}
@@ -151,7 +154,7 @@ export default function GroupDetailPage() {
         <aside className="space-y-4">
           <div className="rounded-2xl bg-ink p-6 text-paper">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-mint">Group total</p>
-            <p className="mt-3 font-display text-4xl font-bold">${total.toFixed(2)}</p>
+            <p className="mt-3 font-display text-4xl font-bold">{formatCurrency(total, currency as any)}</p>
             <p className="mt-2 text-sm text-paper/65">
               Across {members.length} {members.length === 1 ? "member" : "members"}
             </p>
@@ -180,9 +183,9 @@ export default function GroupDetailPage() {
             <div className="rounded-2xl border border-coral/20 bg-[#fff1eb] p-5">
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-coral-dark">Your balance</p>
               <p className="mt-2 font-display text-3xl font-bold text-ink">
-                ${currentShare.toFixed(2)}
+                {formatCurrency(currentShare, currency as any)}
               </p>
-              <PayShareButton amount={currentShare} />
+              <PayShareButton amount={currentShare} currency={currency} />
             </div>
           )}
         </aside>

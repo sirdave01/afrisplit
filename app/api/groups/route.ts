@@ -55,10 +55,17 @@ export async function POST(request: Request) {
 
         const body = await request.json();
 
-        const { name, description, pollarId } = body;
+        const { name, description, pollarId, currency } = body;
 
         if (!name || !pollarId) {
             return NextResponse.json({ error: "name and pollarId are required" }, { status: 400 });
+        }
+
+        const validCurrency = typeof currency === "string" ? currency.toUpperCase() : "NGN";
+        const allowedCurrencies = ["NGN", "KES", "GHS", "ZAR", "XAF", "XOF", "TZS", "UGX", "RWF", "MAD", "EGP", "CDF", "BWP"];
+
+        if (!allowedCurrencies.includes(validCurrency)) {
+            return NextResponse.json({ error: "Unsupported currency. Please choose an African currency." }, { status: 400 });
         }
 
         // Find or create User
@@ -74,6 +81,7 @@ export async function POST(request: Request) {
         const group = await Group.create({
             name,
             description,
+            currency: validCurrency,
             createdBy: user._id,
         });
 

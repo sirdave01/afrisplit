@@ -4,12 +4,14 @@ import { usePollar } from "@pollar/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { AFRICAN_CURRENCIES, DEFAULT_AFRICAN_CURRENCY } from "@/lib/currency";
 
 export default function NewGroupPage() {
   const { wallet } = usePollar();
   const router = useRouter();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [currency, setCurrency] = useState<string>(DEFAULT_AFRICAN_CURRENCY);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -25,6 +27,7 @@ export default function NewGroupPage() {
       body: JSON.stringify({
         name,
         description,
+        currency,
         pollarId: wallet.address,
       }),
     });
@@ -68,6 +71,19 @@ export default function NewGroupPage() {
             rows={3}
             placeholder="What's this group for?"
           />
+        </div>
+
+        <div>
+          <label className="text-sm font-semibold text-ink">Primary currency</label>
+          <select
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value)}
+            className="field mt-2"
+          >
+            {AFRICAN_CURRENCIES.map((code) => (
+              <option key={code} value={code}>{code}</option>
+            ))}
+          </select>
         </div>
 
         {error && <p className="text-sm font-medium text-coral-dark">{error}</p>}

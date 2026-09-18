@@ -12,10 +12,11 @@ type ExpenseFormProps = {
 	groupId: string;
 	pollarId: string;
 	members: Member[];
+	currency: string;
 	onCreated: () => void;
 };
 
-export default function ExpenseForm({ groupId, pollarId, members, onCreated }: ExpenseFormProps) {
+export default function ExpenseForm({ groupId, pollarId, members, currency, onCreated }: ExpenseFormProps) {
 	const [title, setTitle] = useState("");
 	const [amount, setAmount] = useState("");
 	const [submitting, setSubmitting] = useState(false);
@@ -51,13 +52,13 @@ export default function ExpenseForm({ groupId, pollarId, members, onCreated }: E
 				<p className="text-xs font-bold uppercase tracking-[0.18em] text-coral">New expense</p>
 				<h2 className="mt-1 font-display text-2xl font-bold text-ink">What did the group spend?</h2>
 			</div>
-			<div className="grid gap-4 sm:grid-cols-[1fr_150px]">
+			<div className="grid gap-4 sm:grid-cols-[1fr_180px]">
 				<label className="text-sm font-semibold text-ink">
 					Description
 					<input value={title} onChange={(event) => setTitle(event.target.value)} required placeholder="Dinner at Osu" className="field mt-2" />
 				</label>
 				<label className="text-sm font-semibold text-ink">
-					Amount
+					Amount ({currency})
 					<input value={amount} onChange={(event) => setAmount(event.target.value)} required min="0.01" step="0.01" type="number" placeholder="0.00" className="field mt-2" />
 				</label>
 			</div>
