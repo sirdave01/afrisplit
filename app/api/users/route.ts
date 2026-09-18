@@ -29,7 +29,7 @@ export async function POST(request: Request) {
         const user = await User.findOneAndUpdate(
             { pollarId },
             { pollarId, email, name },
-            { upsert: true, new: true }
+            { upsert: true, returnDocument: "after" }
         );
 
         return NextResponse.json(user, { status: 200 });
