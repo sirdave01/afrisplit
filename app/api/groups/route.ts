@@ -1,4 +1,7 @@
-// this is the general groups routes that responds with the information from the database
+// This file handles the main group-level API operations:
+// - listing groups for a connected user
+// - creating a new group
+// - validating the selected African currency before saving the record
 
 import { NextResponse } from "next/server";
 

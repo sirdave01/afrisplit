@@ -1,5 +1,9 @@
 "use client";
 
+// This button is the payment CTA for a user who still owes money in a group.
+// It formats their unpaid balance in the correct African currency and gives a
+// clear action towards settling the amount.
+
 import { formatCurrency } from "@/lib/currency";
 
 type PayShareButtonProps = {

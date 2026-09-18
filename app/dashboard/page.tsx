@@ -1,5 +1,8 @@
 "use client";
 
+// Dashboard page for the authenticated user. It checks whether the wallet is
+// connected and then loads the groups associated with that user.
+
 import { usePollar } from "@pollar/react";
 import { useEffect, useState } from "react";
 import Link from "next/link";

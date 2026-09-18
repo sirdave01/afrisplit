@@ -8,6 +8,8 @@ import ExpenseForm from "@/components/ExpenseForm";
 import PayShareButton from "@/components/PayShareButton";
 import { formatCurrency } from "@/lib/currency";
 
+// Represent a registered user in the app. most of our membership logic uses the
+// wallet-based Pollar ID, but we also keep name/email for nicer display.
 type User = { _id: string; name?: string; email?: string; pollarId?: string };
 type Member = { _id: string; userId: User };
 type Expense = {
@@ -23,12 +25,18 @@ export default function GroupDetailPage() {
   const { groupId } = useParams<{ groupId: string }>();
   const { wallet } = usePollar();
 
+  // Group detail state is loaded from the API and re-used across several UI blocks.
   const [group, setGroup] = useState<Group | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [inviteName, setInviteName] = useState("");
+  const [addingMember, setAddingMember] = useState(false);
+  const [inviteError, setInviteError] = useState("");
 
+  // This fetch is the main data source for the page. it is re-used after creating a
+  // new expense or adding a new member so the UI stays in sync with the server state.
   const loadGroup = useCallback(async () => {
     try {
       const response = await fetch(`/api/groups/${groupId}`);
@@ -39,9 +47,9 @@ export default function GroupDetailPage() {
       }
 
       const data = await response.json();
-      setGroup(data.group);
-      setMembers(data.members || []);
-      setExpenses(data.expenses || []);
+      setGroup(data.group ?? null);
+      setMembers(Array.isArray(data.members) ? data.members : []);
+      setExpenses(Array.isArray(data.expenses) ? data.expenses : []);
       setError("");
     } catch {
       setError("Failed to load group.");
@@ -51,25 +59,61 @@ export default function GroupDetailPage() {
   }, [groupId]);
 
   useEffect(() => {
+    // queueMicrotask keeps the flow consistent with the app's current pattern, but we
+    // still guard the fetch with a real async function so the UI can recover from errors.
     queueMicrotask(() => {
       setLoading(true);
       void loadGroup();
     });
   }, [loadGroup]);
 
-  const total = expenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
+  const total = expenses.reduce((sum, expense) => sum + (Number(expense.amount) || 0), 0);
   const currency = (group?.currency || "NGN").toUpperCase();
 
+  // A current user's share is computed from the saved expense shares, so we can show
+  // the exact unsettled balance for the wallet currently connected to Pollar.
   const currentUser = members.find(
     (member) => member.userId?.pollarId === wallet?.address
   )?.userId;
 
   const currentShare = expenses.reduce((sum, expense) => {
-    const share = expense.shares.find(
+    const share = expense.shares?.find(
       (item) => item.userId === currentUser?._id || item.userId?.toString() === currentUser?._id
     );
-    return sum + (share && !share.paid ? share.amount : 0);
+    return sum + (share && !share.paid ? Number(share.amount) || 0 : 0);
   }, 0);
+
+  const handleAddMember = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!inviteName.trim()) {
+      setInviteError("Enter a wallet address or email to add to this group.");
+      return;
+    }
+
+    setAddingMember(true);
+    setInviteError("");
+
+    try {
+      const response = await fetch(`/api/groups/${groupId}/members`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier: inviteName.trim() }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || "Could not add member.");
+      }
+
+      setInviteName("");
+      await loadGroup();
+    } catch (error) {
+      setInviteError(error instanceof Error ? error.message : "Could not add member.");
+    } finally {
+      setAddingMember(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -90,7 +134,9 @@ export default function GroupDetailPage() {
     );
   }
 
-  const expenseMembers = members.map((member) => member.userId);
+  const expenseMembers = members
+    .map((member) => member.userId)
+    .filter((user): user is User => Boolean(user));
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-10 lg:px-8">
@@ -165,17 +211,45 @@ export default function GroupDetailPage() {
               <h2 className="font-display text-xl font-bold text-ink">Members</h2>
               <span className="text-sm text-muted">{members.length}</span>
             </div>
+
+            <form onSubmit={handleAddMember} className="mt-4 space-y-3">
+              <label className="block text-sm font-medium text-ink">
+                Add a member
+                <input
+                  value={inviteName}
+                  onChange={(event) => setInviteName(event.target.value)}
+                  placeholder="Wallet address or email"
+                  className="field mt-2"
+                />
+              </label>
+
+              {inviteError && <p className="text-sm text-coral-dark">{inviteError}</p>}
+
+              <button
+                type="submit"
+                disabled={addingMember || !inviteName.trim()}
+                className="w-full rounded-full bg-coral px-4 py-2 text-sm font-bold text-white transition hover:bg-coral-dark disabled:opacity-60"
+              >
+                {addingMember ? "Adding..." : "Add to group"}
+              </button>
+            </form>
+
             <div className="mt-4 space-y-3">
-              {members.map((member) => (
-                <div key={member._id} className="flex items-center gap-3">
-                  <div className="grid h-9 w-9 place-items-center rounded-full bg-mint text-sm font-bold text-ink">
-                    {(member.userId.name || member.userId.email || "?").slice(0, 1).toUpperCase()}
+              {members.map((member) => {
+                const user = member.userId;
+                if (!user) return null;
+
+                return (
+                  <div key={member._id} className="flex items-center gap-3">
+                    <div className="grid h-9 w-9 place-items-center rounded-full bg-mint text-sm font-bold text-ink">
+                      {(user.name || user.email || "?").slice(0, 1).toUpperCase()}
+                    </div>
+                    <p className="truncate text-sm font-medium text-ink">
+                      {user.name || user.email || "Unnamed member"}
+                    </p>
                   </div>
-                  <p className="truncate text-sm font-medium text-ink">
-                    {member.userId.name || member.userId.email || "Unnamed member"}
-                  </p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

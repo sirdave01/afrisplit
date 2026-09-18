@@ -1,3 +1,6 @@
+// A compact summary card for a group in the dashboard. It provides a quick way to
+// navigate into a group's detailed spend overview and member list.
+
 import Link from "next/link";
 
 type GroupCardProps = {

@@ -1,8 +1,6 @@
-// This is the group Mongoose schema and model representing an expense group.
-
-// the group schema will reference the user schema to establish a relationship between groups and users. 
-// Each group will have a name, an optional description, and a reference to the user who created it. 
-// The schema will also include timestamps to track when each group was created and last updated.
+// This Mongoose model represents a shared expense group.
+// Each group is tied to a creator user and can optionally store a default African
+// currency so all members see a consistent pricing view for the group.
 
 import mongoose, { Schema, models } from "mongoose";
 

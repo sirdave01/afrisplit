@@ -1,4 +1,6 @@
-// Reserved for API operations that create and retrieve group expenses.
+// This file creates expense records and calculates each member's split
+// for a group. The app uses the selected group members to build a fair share
+// distribution, while preserving who originally paid the expense.
 
 import { NextResponse } from "next/server";
 

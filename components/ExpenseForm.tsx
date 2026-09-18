@@ -1,5 +1,9 @@
 "use client";
 
+// This form lets a user create a new expense inside a group.
+// It collects a description and amount, then posts the record so the group page
+// can recalculate balances and split data immediately.
+
 import { useState } from "react";
 
 type Member = {

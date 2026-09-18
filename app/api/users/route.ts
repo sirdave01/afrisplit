@@ -1,5 +1,6 @@
-// this route file routes the db to the user models to get response
-// from next server to connecting with the database and getting the required information
+// This endpoint keeps the user record in sync with the current Pollar wallet.
+// It creates the user if they are new, or updates the existing record if they
+// return to the app and reconnect with the same wallet ID.
 
 
 import { NextResponse } from "next/server";
